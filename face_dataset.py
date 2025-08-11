@@ -60,9 +60,9 @@ class FaceMask(Dataset):
 
 
 if __name__ == "__main__":
-    face_data = '/home/zll/data/CelebAMask-HQ/CelebA-HQ-img'
-    face_sep_mask = '/home/zll/data/CelebAMask-HQ/CelebAMask-HQ-mask-anno'
-    mask_path = '/home/zll/data/CelebAMask-HQ/mask'
+    face_data = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-img'
+    face_sep_mask = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebAMask-HQ-mask-anno'
+    mask_path = '/home/andrei/data/CelebAMask-HQ/mask'
     counter = 0
     total = 0
     for i in range(15):

@@ -32,23 +32,25 @@ logger = logging.getLogger()
 
 def parse_args():
     parse = argparse.ArgumentParser()
-    parse.add_argument(
-            '--local_rank',
-            dest = 'local_rank',
-            type = int,
-            default = -1,
-            )
+#    parse.add_argument(
+#            '--local_rank',
+#            dest = 'local_rank',
+#            type = int,
+#            default = 0,
+#            )
     return parse.parse_args()
 
 
 def train():
     args = parse_args()
-    torch.cuda.set_device(args.local_rank)
+    torch.cuda.set_device(0)
     dist.init_process_group(
                 backend = 'nccl',
-                init_method = 'tcp://127.0.0.1:33241',
+                init_method = 'tcp://127.0.0.1:29500',
+#                init_method = 'tcp://127.0.0.1:33241',
                 world_size = torch.cuda.device_count(),
-                rank=args.local_rank
+                rank=0
+#                rank=args.local_rank
                 )
     setup_logger(respth)
 
@@ -57,7 +59,7 @@ def train():
     n_img_per_gpu = 16
     n_workers = 8
     cropsize = [448, 448]
-    data_root = '/home/zll/data/CelebAMask-HQ/'
+    data_root = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/'
 
     ds = FaceMask(data_root, cropsize=cropsize, mode='train')
     sampler = torch.utils.data.distributed.DistributedSampler(ds)
@@ -75,8 +77,8 @@ def train():
     net.cuda()
     net.train()
     net = nn.parallel.DistributedDataParallel(net,
-            device_ids = [args.local_rank, ],
-            output_device = args.local_rank
+            device_ids = [0, ],
+            output_device = 0
             )
     score_thres = 0.7
     n_min = n_img_per_gpu * cropsize[0] * cropsize[1]//16
@@ -88,7 +90,7 @@ def train():
     momentum = 0.9
     weight_decay = 5e-4
     lr_start = 1e-2
-    max_iter = 80000
+    max_iter = 100000
     power = 0.9
     warmup_steps = 1000
     warmup_start_lr = 1e-5
@@ -164,7 +166,7 @@ def train():
                 state = net.module.state_dict() if hasattr(net, 'module') else net.state_dict()
                 if dist.get_rank() == 0:
                     torch.save(state, './res/cp/{}_iter.pth'.format(it))
-                evaluate(dspth='/home/zll/data/CelebAMask-HQ/test-img', cp='{}_iter.pth'.format(it))
+                evaluate(dspth='/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img', cp='{}_iter.pth'.format(it))
 
     #  dump the final model
     save_pth = osp.join(respth, 'model_final_diss.pth')
