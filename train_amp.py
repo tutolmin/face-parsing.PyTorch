@@ -13,6 +13,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from torch.amp import autocast, GradScaler
 import torch.nn.functional as F
 import torch.distributed as dist
 
@@ -44,6 +45,8 @@ def parse_args():
 def train():
     args = parse_args()
     torch.cuda.set_device(0)
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
     dist.init_process_group(
                 backend = 'nccl',
                 init_method = 'tcp://127.0.0.1:29500',
@@ -57,7 +60,7 @@ def train():
     # dataset
     n_classes = 19
     n_img_per_gpu = 64
-    n_workers = 10
+    n_workers = 8
     cropsize = [448, 448]
     data_root = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/'
 
@@ -105,6 +108,7 @@ def train():
             power = power)
 
     ## train loop
+    scaler = GradScaler('cuda')
     msg_iter = 50
     loss_avg = []
     st = glob_st = time.time()
@@ -126,13 +130,21 @@ def train():
         lb = torch.squeeze(lb, 1)
 
         optim.zero_grad()
-        out, out16, out32 = net(im)
-        lossp = LossP(out, lb)
-        loss2 = Loss2(out16, lb)
-        loss3 = Loss3(out32, lb)
-        loss = lossp + loss2 + loss3
-        loss.backward()
-        optim.step()
+#        out, out16, out32 = net(im)
+#        lossp = LossP(out, lb)
+#        loss2 = Loss2(out16, lb)
+#        loss3 = Loss3(out32, lb)
+#        loss = lossp + loss2 + loss3
+#        loss.backward()
+        with autocast(device_type='cuda', dtype=torch.float16):
+            out, out16, out32 = net(im)
+            lossp = LossP(out, lb)
+            loss2 = Loss2(out16, lb)
+            loss3 = Loss3(out32, lb)
+            loss = lossp + loss2 + loss3
+        scaler.scale(loss).backward()
+        scaler.step(optim)   # ← теперь не упадёт
+        scaler.update()
 
         loss_avg.append(loss.item())
 
@@ -178,4 +190,9 @@ def train():
 
 
 if __name__ == "__main__":
-    train()
+#    train()
+    try:
+        train()
+    finally:
+        if dist.is_available() and dist.is_initialized():
+            dist.destroy_process_group()
