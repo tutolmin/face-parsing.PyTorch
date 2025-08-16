@@ -41,6 +41,40 @@ def parse_args():
 #            )
     return parse.parse_args()
 
+# First, define class weights based on importance
+def get_class_weights():
+    # CelebAMask-HQ has 19 classes: 
+    # 0: background, 1: skin, 2: l_brow, 3: r_brow, 4: l_eye, 5: r_eye, 
+    # 6: eye_g, 7: l_ear, 8: r_ear, 9: ear_r, 10: nose, 11: mouth, 
+    # 12: u_lip, 13: l_lip, 14: neck, 15: neck_l, 16: cloth, 17: hair, 18: hat
+    
+    # Weight values (higher = more important)
+    weights = torch.ones(19)  # default weight is 1
+    
+    # Very important classes (eyes, mouth, lips)
+    weights[2] = 2.0   # l_brow
+    weights[3] = 2.0   # r_brow
+    weights[4] = 3.0   # l_eye
+    weights[5] = 3.0   # r_eye
+    weights[11] = 3.0  # mouth
+    weights[12] = 3.0  # u_lip
+    weights[13] = 3.0  # l_lip
+    
+    # Moderately important
+    weights[1] = 1.5   # skin
+    weights[10] = 1.5  # nose
+    weights[17] = 1.5  # hair
+    
+    # Less important (set to <1 to reduce their impact)
+    weights[6] = 0.8   # eye_g (eyeglasses)
+    weights[7] = 0.5   # l_ear
+    weights[8] = 0.5   # r_ear
+    weights[9] = 0.3   # ear_r (earrings)
+    weights[14] = 0.7  # neck
+    weights[15] = 0.5  # neck_l (necklace)
+    weights[18] = 0.3  # hat
+    
+    return weights.cuda()
 
 def train():
     args = parse_args()
@@ -85,9 +119,15 @@ def train():
             )
     score_thres = 0.7
     n_min = n_img_per_gpu * cropsize[0] * cropsize[1]//16
-    LossP = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
-    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
-    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
+#    LossP = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
+#    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
+#    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
+
+    # Modify the loss initialization
+    class_weight = get_class_weights()
+    LossP = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
+    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
+    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
 
     ## optimizer
     momentum = 0.9
