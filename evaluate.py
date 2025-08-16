@@ -56,7 +56,7 @@ def vis_parsing_maps(im, parsing_anno, stride, save_im=False, save_path='vis_res
 
     # return vis_im
 
-def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss_32.pth'):
+def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth'):
 
     if not os.path.exists(respth):
         os.makedirs(respth)
@@ -64,8 +64,8 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss_32.pt
     n_classes = 19
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
-#    save_pth = osp.join('res/cp', cp)
-    save_pth = osp.join('res/', cp)
+    save_pth = osp.join('res/cp', cp)
+#    save_pth = osp.join('res/', cp)
     net.load_state_dict(torch.load(save_pth))
     net.eval()
 

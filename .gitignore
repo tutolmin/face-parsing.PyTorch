@@ -108,3 +108,7 @@ res/
 
 .idea/
 
+test_img/
+test_label/
+data/
+converted_model.h5

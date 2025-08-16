@@ -9,8 +9,8 @@ import os
 # Конфигурация
 VAL_IMAGES_DIR = "test_img/"  # Папка с валидационными изображениями
 VAL_MASKS_DIR = "test_label/"    # Папка с ручными масками (классы 0-18)
-#MODEL_PATH = "res/model_final_diss_16.pth"   # Путь к предобученной модели
-MODEL_PATH = "res/model_final_diss.pth"   # Путь к предобученной модели
+MODEL_PATH = "res/model_final_diss_16.pth"   # Путь к предобученной модели
+#MODEL_PATH = "res/model_final_diss.pth"   # Путь к предобученной модели
 #MODEL_PATH = "res/79999_iter_orig.pth"   # Путь к предобученной модели
 NUM_CLASSES = 19                # Количество классов в исходной модели
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
