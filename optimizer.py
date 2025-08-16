@@ -8,9 +8,9 @@ import logging
 logger = logging.getLogger()
 
 class Optimizer(object):
-#    @property
-#    def param_groups(self):
-#        return self.optim.param_groups
+    @property
+    def param_groups(self):
+        return self.optim.param_groups
     def __init__(self,
                 model,
                 lr0,
