@@ -11,7 +11,8 @@ from model import BiSeNet  # Ensure this import works from face-parsing.PyTorch
 # Configuration
 VAL_IMAGES_DIR = "test_img/"  # Папка с валидационными изображениями
 VAL_MASKS_DIR = "test_label/"    # Папка с ручными масками (классы 0-18)
-MODEL_PATH = "res/model_final_diss_32.pth"   # Путь к предобученной модел
+MODEL_PATH = "res/model_final_diss_16.pth"   # Путь к предобученной модел
+#MODEL_PATH = "res/model_final_diss_32.pth"   # Путь к предобученной модел
 #VAL_IMAGES_DIR = "val_images/"
 #VAL_MASKS_DIR = "val_masks/"
 #MODEL_PATH = "pretrained.pth"
