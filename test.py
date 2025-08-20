@@ -85,6 +85,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
 
 
 if __name__ == "__main__":
-    evaluate(dspth='/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img', cp='99999_iter.pth')
+#    evaluate(dspth='/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img', cp='4999_iter.pth')
+    evaluate(dspth='/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img', cp='14999_iter.pth')
 
 

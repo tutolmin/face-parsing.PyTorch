@@ -11,8 +11,10 @@ from model import BiSeNet  # Ensure this import works from face-parsing.PyTorch
 # Configuration
 VAL_IMAGES_DIR = "test_img/"  # Папка с валидационными изображениями
 VAL_MASKS_DIR = "test_label/"    # Папка с ручными масками (классы 0-18)
-MODEL_PATH = "res/model_final_diss_16.pth"   # Путь к предобученной модел
-#MODEL_PATH = "res/model_final_diss_32.pth"   # Путь к предобученной модел
+#MODEL_PATH = "res/model_final_diss_16.pth"   # Путь к предобученной модел
+#MODEL_PATH = "res/model_final_diss_96.pth"   # Путь к предобученной модел
+#MODEL_PATH = "res/cp/99999_iter.pth"   # Путь к предобученной модел
+MODEL_PATH = "res/cp/19999_iter.pth"   # Путь к предобученной модел
 #VAL_IMAGES_DIR = "val_images/"
 #VAL_MASKS_DIR = "val_masks/"
 #MODEL_PATH = "pretrained.pth"
@@ -27,20 +29,21 @@ CLASS_NAMES = {
     3: 'r_brow',
     4: 'l_eye',
     5: 'r_eye',
-    6: 'eye_g',
+#    6: 'eye_g',
     7: 'l_ear',
     8: 'r_ear',
-    9: 'ear_r',
+#    9: 'ear_r',
     10: 'nose',
     11: 'mouth',
     12: 'u_lip',
     13: 'l_lip',
     14: 'neck',
-    15: 'neck_l',
-    16: 'cloth',
+#    15: 'neck_l',
+#    16: 'cloth',
     17: 'hair',
-    18: 'hat'
+#    18: 'hat'
 }
+ignore_classes = [6, 9, 15, 16, 18]          # Классы, которые нужно пропустить
 
 def validate_mask_classes(masks_dir):
     """Check for unexpected class IDs in masks"""
@@ -54,6 +57,7 @@ def validate_mask_classes(masks_dir):
     return sorted(class_ids)
 
 # Load model
+print("Loading model " + MODEL_PATH)
 model = BiSeNet(n_classes=NUM_CLASSES)
 model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 model.to(DEVICE)
@@ -116,6 +120,8 @@ for i, img_file in enumerate(tqdm(image_files[:1000])):  # Limit to first 1000 f
 print("\nClass-wise Metrics:")
 print("Class\tName\t\tIoU\tPrec\tRecall\tCount")
 for class_id in range(NUM_CLASSES):
+    if class_id in ignore_classes:
+        continue  # Пропускаем ненужные классы    
     if metrics['count'][class_id] > 0:
         iou = metrics['iou'][class_id] / metrics['count'][class_id]
         prec = metrics['precision'][class_id] / metrics['count'][class_id]
@@ -123,8 +129,12 @@ for class_id in range(NUM_CLASSES):
         
         print(f"{class_id}\t{CLASS_NAMES[class_id]:<10}\t{iou:.3f}\t{prec:.3f}\t{rec:.3f}\t{int(metrics['count'][class_id])}")
 
-# Aggregate metrics
-mean_iou = np.mean([metrics['iou'][c]/metrics['count'][c] for c in range(NUM_CLASSES) if metrics['count'][c] > 0])
+# Aggregate metrics# Сначала отфильтруем классы
+valid_classes = [
+    c for c in range(NUM_CLASSES) 
+    if c not in ignore_classes and metrics['count'][c] > 0
+]
+mean_iou = np.mean([metrics['iou'][c]/metrics['count'][c] for c in valid_classes])
 print(f"\nMean IoU: {mean_iou:.4f}")
 print(f"Mean Precision: {np.mean(metrics['precision'][metrics['count']>0]/metrics['count'][metrics['count']>0]):.4f}")
 print(f"Mean Recall: {np.mean(metrics['recall'][metrics['count']>0]/metrics['count'][metrics['count']>0]):.4f}")

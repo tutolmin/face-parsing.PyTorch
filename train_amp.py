@@ -52,27 +52,35 @@ def get_class_weights():
     weights = torch.ones(19)  # default weight is 1
     
     # Very important classes (eyes, mouth, lips)
-    weights[2] = 2.0   # l_brow
-    weights[3] = 2.0   # r_brow
     weights[4] = 3.0   # l_eye
     weights[5] = 3.0   # r_eye
     weights[11] = 3.0  # mouth
     weights[12] = 3.0  # u_lip
     weights[13] = 3.0  # l_lip
+
+    # Still important
+    weights[2] = 2.0   # l_brow
+    weights[3] = 2.0   # r_brow
+    weights[10] = 2.0  # nose
     
     # Moderately important
     weights[1] = 1.5   # skin
-    weights[10] = 1.5  # nose
-    weights[17] = 1.5  # hair
+
+    # Default
+#    weights[17] = 1.0  # hair
+#    weights[0] = 1.0  # background
     
     # Less important (set to <1 to reduce their impact)
-    weights[6] = 0.8   # eye_g (eyeglasses)
     weights[7] = 0.5   # l_ear
     weights[8] = 0.5   # r_ear
-    weights[9] = 0.3   # ear_r (earrings)
-    weights[14] = 0.7  # neck
-    weights[15] = 0.5  # neck_l (necklace)
-    weights[18] = 0.3  # hat
+    weights[14] = 0.5  # neck
+
+    # Exclude
+    weights[6] = 0.0   # eye_g (eyeglasses)
+    weights[9] = 0.0   # ear_r (earrings)
+    weights[15] = 0.0  # neck_l (necklace)
+    weights[16] = 0.0  # cloth
+    weights[18] = 0.0  # hat
     
     return weights.cuda()
 
@@ -132,10 +140,13 @@ def train():
     ## optimizer
     momentum = 0.9
     weight_decay = 5e-4
-    lr_start = 1e-2
+#    lr_start = 1e-2
+    lr_start = 5e-3
     max_iter = 100000
-    power = 0.9
-    warmup_steps = 1000
+#    power = 0.9
+    power = 0.6
+#    warmup_steps = 1000
+    warmup_steps = 500
     warmup_start_lr = 1e-5
     optim = Optimizer(
             model = net.module,
@@ -218,7 +229,7 @@ def train():
                 state = net.module.state_dict() if hasattr(net, 'module') else net.state_dict()
                 if dist.get_rank() == 0:
                     torch.save(state, './res/cp/{}_iter.pth'.format(it))
-                evaluate(dspth='/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img', cp='{}_iter.pth'.format(it))
+                evaluate(dspth='/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-eval-img', cp='{}_iter.pth'.format(it))
 
     #  dump the final model
     save_pth = osp.join(respth, 'model_final_diss.pth')
