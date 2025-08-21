@@ -7,15 +7,20 @@ import cv2
 from transform import *
 from PIL import Image
 
-face_data = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-img'
+#face_data = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-img'
+face_data = './test_img'
 face_sep_mask = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebAMask-HQ-mask-anno'
-mask_path = '/home/andrei/data/CelebAMask-HQ/mask'
+#mask_path = '/home/andrei/data/CelebAMask-HQ/mask'
+mask_path = './test_label'
 counter = 0
 total = 0
 for i in range(15):
 
     atts = ['skin', 'l_brow', 'r_brow', 'l_eye', 'r_eye', 'eye_g', 'l_ear', 'r_ear', 'ear_r',
             'nose', 'mouth', 'u_lip', 'l_lip', 'neck', 'neck_l', 'cloth', 'hair', 'hat']
+
+#    atts = ['skin', 'l_brow', 'r_brow', 'l_eye', 'r_eye', 'eye_g', 'l_ear', 'r_ear',
+#            'nose', 'mouth', 'u_lip', 'l_lip', 'neck', 'hair']
 
     for j in range(i * 2000, (i + 1) * 2000):
 
