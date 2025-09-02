@@ -7,11 +7,22 @@ import os
 from model import BiSeNet
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
+import sys
+
+# Проверяем наличие аргумента
+if len(sys.argv) < 2:
+    print("Usage: python script.py <model_path>")
+    sys.exit(1)
 
 # Configuration
-VAL_IMAGES_DIR = "test_img/"
-VAL_MASKS_DIR = "test_label/"
-MODEL_PATH = "res/cp/79999_iter.pth"
+#VAL_IMAGES_DIR = "test_img/"
+VAL_IMAGES_DIR = "/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img/"
+#VAL_MASKS_DIR = "test_label/"
+VAL_MASKS_DIR = "/home/andrei/data/celebmaskhq/CelebAMask-HQ/mask/"
+#MODEL_PATH = "res/cp_64/4999_iter.pth"
+#MODEL_PATH = "res/cp_16/79999_iter_orig.pth"
+#MODEL_PATH = "res/cp/4999_iter.pth"
+MODEL_PATH = sys.argv[1]  # Первый аргумент командной строки
 NUM_CLASSES = 19
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -81,9 +92,9 @@ metrics = {
 
 # Main validation loop with parallel processing
 image_files = sorted([f for f in os.listdir(VAL_IMAGES_DIR) if f.endswith(('.jpg', '.png'))])
-image_files = image_files[:1000]
+image_files = image_files[:1024]
 
-batch_size = 32
+batch_size = 16
 num_threads = 4
 batches = [image_files[i:i+batch_size] for i in range(0, len(image_files), batch_size)]
 

@@ -101,7 +101,7 @@ def train():
 
     # dataset
     n_classes = 19
-    n_img_per_gpu = 96
+    n_img_per_gpu = 64
     n_workers = 10
     cropsize = [448, 448]
     data_root = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/'
@@ -143,10 +143,10 @@ def train():
 #    lr_start = 1e-2
     lr_start = 5e-3
     max_iter = 100000
-#    power = 0.9
-    power = 0.6
-#    warmup_steps = 1000
-    warmup_steps = 500
+    power = 0.9
+#    power = 0.6
+    warmup_steps = 1000
+#    warmup_steps = 500
     warmup_start_lr = 1e-5
     optim = Optimizer(
             model = net.module,
