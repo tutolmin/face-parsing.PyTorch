@@ -16,9 +16,9 @@ if len(sys.argv) < 2:
 
 # Configuration
 #VAL_IMAGES_DIR = "test_img/"
-VAL_IMAGES_DIR = "/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img/"
+VAL_IMAGES_DIR = "/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img/"
 #VAL_MASKS_DIR = "test_label/"
-VAL_MASKS_DIR = "/home/andrei/data/celebmaskhq/CelebAMask-HQ/mask/"
+VAL_MASKS_DIR = "/home/andrei/data/CelebAMask-HQ/mask_bak"
 #MODEL_PATH = "res/cp_64/4999_iter.pth"
 #MODEL_PATH = "res/cp_16/79999_iter_orig.pth"
 #MODEL_PATH = "res/cp/4999_iter.pth"
