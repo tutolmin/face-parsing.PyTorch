@@ -1,6 +1,6 @@
 site_name: Face parsing BiSeNet
 nav:
-  - Home: index.md
   - About: about.md
+  - Home: README.md
 theme: readthedocs
 
