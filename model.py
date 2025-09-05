@@ -273,7 +273,8 @@ class BiSeNet(nn.Module):
 
 
 if __name__ == "__main__":
-    net = BiSeNet(19)
+#    net = BiSeNet(19)
+    net = BiSeNet(10)
     net.cuda()
     net.eval()
     in_ten = torch.randn(16, 3, 640, 480).cuda()

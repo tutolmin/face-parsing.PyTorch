@@ -18,7 +18,7 @@ MODEL_PATH = "res/cp/99999_iter.pth"   # Путь к предобученной 
 #VAL_IMAGES_DIR = "val_images/"
 #VAL_MASKS_DIR = "val_masks/"
 #MODEL_PATH = "pretrained.pth"
-NUM_CLASSES = 19
+NUM_CLASSES = 10
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Class definitions (CelebAMask-HQ standard)
@@ -30,20 +30,21 @@ CLASS_NAMES = {
     4: 'l_eye',
     5: 'r_eye',
 #    6: 'eye_g',
-    7: 'l_ear',
-    8: 'r_ear',
+#    7: 'l_ear',
+#    8: 'r_ear',
 #    9: 'ear_r',
-    10: 'nose',
-    11: 'mouth',
-    12: 'u_lip',
-    13: 'l_lip',
-    14: 'neck',
+    6: 'nose',
+    7: 'mouth',
+    8: 'u_lip',
+    9: 'l_lip',
+#    14: 'neck',
 #    15: 'neck_l',
 #    16: 'cloth',
-    17: 'hair',
+#    17: 'hair',
 #    18: 'hat'
 }
-ignore_classes = [6, 9, 15, 16, 18]          # Классы, которые нужно пропустить
+#ignore_classes = [6, 9, 15, 16, 18]          # Классы, которые нужно пропустить
+ignore_classes = []          # Классы, которые нужно пропустить
 
 def validate_mask_classes(masks_dir):
     """Check for unexpected class IDs in masks"""

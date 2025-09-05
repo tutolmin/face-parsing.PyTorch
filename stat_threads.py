@@ -16,23 +16,23 @@ if len(sys.argv) < 2:
 
 # Configuration
 #VAL_IMAGES_DIR = "test_img/"
-VAL_IMAGES_DIR = "/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img/"
+VAL_IMAGES_DIR = "/home/andrei/data//CelebAMask-HQ/CelebA-HQ-eval-img/"
 #VAL_MASKS_DIR = "test_label/"
-VAL_MASKS_DIR = "/home/andrei/data/celebmaskhq/CelebAMask-HQ/mask/"
+VAL_MASKS_DIR = "/home/andrei/data/CelebAMask-HQ/mask/"
 #MODEL_PATH = "res/cp_64/4999_iter.pth"
 #MODEL_PATH = "res/cp_16/79999_iter_orig.pth"
 #MODEL_PATH = "res/cp/4999_iter.pth"
 MODEL_PATH = sys.argv[1]  # Первый аргумент командной строки
-NUM_CLASSES = 19
+NUM_CLASSES = 10
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Class definitions
 CLASS_NAMES = {
     0: 'background', 1: 'skin', 2: 'l_brow', 3: 'r_brow', 4: 'l_eye', 5: 'r_eye',
-    7: 'l_ear', 8: 'r_ear', 10: 'nose', 11: 'mouth', 12: 'u_lip', 13: 'l_lip',
-    14: 'neck', 17: 'hair',
+    6: 'nose', 7: 'mouth', 8: 'u_lip', 9: 'l_lip',
 }
-ignore_classes = [6, 9, 15, 16, 18]
+#ignore_classes = [6, 9, 15, 16, 18]
+ignore_classes = []
 
 def process_image_batch(args):
     """Обработка батча изображений"""

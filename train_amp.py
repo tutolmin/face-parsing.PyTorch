@@ -48,39 +48,45 @@ def get_class_weights():
     # 6: eye_g, 7: l_ear, 8: r_ear, 9: ear_r, 10: nose, 11: mouth, 
     # 12: u_lip, 13: l_lip, 14: neck, 15: neck_l, 16: cloth, 17: hair, 18: hat
     
+#    atts = ['skin', 'l_brow', 'r_brow', 'l_eye', 'r_eye', 'eye_g', 'l_ear', 'r_ear', 'ear_r',
+#            'nose', 'mouth', 'u_lip', 'l_lip', 'neck', 'neck_l', 'cloth', 'hair', 'hat']
+
+#    atts = ['skin', 'l_brow', 'r_brow', 'l_eye', 'r_eye',
+#            'nose', 'mouth', 'u_lip', 'l_lip']
+
     # Weight values (higher = more important)
-    weights = torch.ones(19)  # default weight is 1
+    weights = torch.ones(10)  # default weight is 1
     
     # Very important classes (eyes, mouth, lips)
     weights[4] = 3.0   # l_eye
     weights[5] = 3.0   # r_eye
-    weights[11] = 3.0  # mouth
-    weights[12] = 3.0  # u_lip
-    weights[13] = 3.0  # l_lip
+    weights[7] = 3.0  # mouth
+    weights[8] = 3.0  # u_lip
+    weights[9] = 3.0  # l_lip
 
     # Still important
     weights[2] = 2.0   # l_brow
     weights[3] = 2.0   # r_brow
-    weights[10] = 2.0  # nose
+    weights[6] = 2.0  # nose
     
     # Moderately important
-    weights[1] = 1.5   # skin
+    weights[1] = 1.0   # skin
 
     # Default
 #    weights[17] = 1.0  # hair
 #    weights[0] = 1.0  # background
     
     # Less important (set to <1 to reduce their impact)
-    weights[7] = 0.5   # l_ear
-    weights[8] = 0.5   # r_ear
-    weights[14] = 0.5  # neck
+#    weights[7] = 0.0   # l_ear
+#    weights[8] = 0.0   # r_ear
+#    weights[14] = 0.0  # neck
 
     # Exclude
-    weights[6] = 0.0   # eye_g (eyeglasses)
-    weights[9] = 0.0   # ear_r (earrings)
-    weights[15] = 0.0  # neck_l (necklace)
-    weights[16] = 0.0  # cloth
-    weights[18] = 0.0  # hat
+#    weights[6] = 0.0   # eye_g (eyeglasses)
+#    weights[9] = 0.0   # ear_r (earrings)
+#    weights[15] = 0.0  # neck_l (necklace)
+#    weights[16] = 0.0  # cloth
+#    weights[18] = 0.0  # hat
     
     return weights.cuda()
 
@@ -100,11 +106,12 @@ def train():
     setup_logger(respth)
 
     # dataset
-    n_classes = 19
+#    n_classes = 19
+    n_classes = 10
     n_img_per_gpu = 64
     n_workers = 10
     cropsize = [448, 448]
-    data_root = '/home/andrei/data/celebmaskhq/CelebAMask-HQ/'
+    data_root = '/home/andrei/data/CelebAMask-HQ/'
 
     ds = FaceMask(data_root, cropsize=cropsize, mode='train')
     sampler = torch.utils.data.distributed.DistributedSampler(ds)
@@ -229,7 +236,7 @@ def train():
                 state = net.module.state_dict() if hasattr(net, 'module') else net.state_dict()
                 if dist.get_rank() == 0:
                     torch.save(state, './res/cp/{}_iter.pth'.format(it))
-                evaluate(dspth='/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-eval-img', cp='{}_iter.pth'.format(it))
+                evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='{}_iter.pth'.format(it))
 
     #  dump the final model
     save_pth = osp.join(respth, 'model_final_diss.pth')
