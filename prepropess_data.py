@@ -8,7 +8,7 @@ from transform import *
 from PIL import Image
 
 face_sep_mask = '/home/andrei/data/CelebAMask-HQ/CelebAMask-HQ-mask-anno'
-mask_path = '/home/andrei/data/CelebAMask-HQ/mask'
+mask_path = '/home/andrei/data/CelebAMask-HQ/CelebAMask-HQ-mask'
 counter = 0
 total = 0
 for i in range(15):
