@@ -25,13 +25,13 @@ import cv2
 def vis_parsing_maps(im, parsing_anno, stride, save_im=False, save_path='vis_results/parsing_map_on_im.jpg'):
     # Colors for all 20 parts
     part_colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0],
-                   [255, 0, 85], [255, 0, 170],
                    [0, 255, 0], [85, 255, 0], [170, 255, 0],
                    [0, 255, 85], [0, 255, 170],
                    [0, 0, 255], [85, 0, 255], [170, 0, 255],
                    [0, 85, 255], [0, 170, 255],
                    [255, 255, 0], [255, 255, 85], [255, 255, 170],
                    [255, 0, 255], [255, 85, 255], [255, 170, 255],
+                   [255, 0, 85], [255, 0, 170],
                    [0, 255, 255], [85, 255, 255], [170, 255, 255]]
 
     im = np.array(im)
@@ -62,7 +62,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
         os.makedirs(respth)
 
 #    n_classes = 19
-    n_classes = 10
+    n_classes = 8
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
     save_pth = osp.join('res/cp', cp)

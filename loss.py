@@ -56,13 +56,13 @@ if __name__ == '__main__':
     criteria2 = OhemCELoss(thresh=0.7, n_min=16*20*20//16).cuda()
     net1 = nn.Sequential(
 #        nn.Conv2d(3, 19, kernel_size=3, stride=2, padding=1),
-        nn.Conv2d(3, 10, kernel_size=3, stride=2, padding=1),
+        nn.Conv2d(3, 8, kernel_size=3, stride=2, padding=1),
     )
     net1.cuda()
     net1.train()
     net2 = nn.Sequential(
 #        nn.Conv2d(3, 19, kernel_size=3, stride=2, padding=1),
-        nn.Conv2d(3, 10, kernel_size=3, stride=2, padding=1),
+        nn.Conv2d(3, 8, kernel_size=3, stride=2, padding=1),
     )
     net2.cuda()
     net2.train()
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     with torch.no_grad():
         inten = torch.randn(16, 3, 20, 20).cuda()
 #        lbs = torch.randint(0, 19, [16, 20, 20]).cuda()
-        lbs = torch.randint(0, 10, [16, 20, 20]).cuda()
+        lbs = torch.randint(0, 8, [16, 20, 20]).cuda()
         lbs[1, :, :] = 255
 
     logits1 = net1(inten)

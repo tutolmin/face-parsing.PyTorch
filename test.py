@@ -15,14 +15,16 @@ import cv2
 
 def vis_parsing_maps(im, parsing_anno, stride, save_im=False, save_path='vis_results/parsing_map_on_im.jpg'):
     # Colors for all 20 parts
+    #     0: 'background', 1: 'skin', 2: 'brows', 3: 'eyes', 4: 'nose', 5: 'mouth', 6: 'u_lip', 7: 'l_lip',
     part_colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0],
-                   [255, 0, 85], [255, 0, 170],
-                   [0, 255, 0], [85, 255, 0], [170, 255, 0],
-                   [0, 255, 85], [0, 255, 170],
-                   [0, 0, 255], [85, 0, 255], [170, 0, 255],
+                   [255, 0, 85],
+                   [0, 255, 0], 
+                   [0, 255, 170],
+                   [0, 0, 255], [85, 0, 255],
                    [0, 85, 255], [0, 170, 255],
                    [255, 255, 0], [255, 255, 85], [255, 255, 170],
                    [255, 0, 255], [255, 85, 255], [255, 170, 255],
+                   [255, 0, 85], [255, 0, 170],
                    [0, 255, 255], [85, 255, 255], [170, 255, 255]]
 
     im = np.array(im)
@@ -53,10 +55,10 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
     if not os.path.exists(respth):
         os.makedirs(respth)
 
-    n_classes = 10
+    n_classes = 8
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
-    save_pth = osp.join('res/cp', cp)
+    save_pth = osp.join('res/cp_8_8', cp)
     net.load_state_dict(torch.load(save_pth))
     net.eval()
 
@@ -85,7 +87,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
 
 
 if __name__ == "__main__":
-#    evaluate(dspth='/home/andrei/data/celebmaskhq/CelebAMask-HQ/CelebA-HQ-test-img', cp='4999_iter.pth')
-    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='99999_iter.pth')
+#    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='19999_iter.pth')
+    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='99999_iter.pth')
 
 

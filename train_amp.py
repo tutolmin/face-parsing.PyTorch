@@ -54,20 +54,20 @@ def get_class_weights():
 #    atts = ['skin', 'l_brow', 'r_brow', 'l_eye', 'r_eye',
 #            'nose', 'mouth', 'u_lip', 'l_lip']
 
+#    merged_atts = ['skin', 'brows', 'eyes', 'nose', 'mouth', 'u_lip', 'l_lip']
+
     # Weight values (higher = more important)
-    weights = torch.ones(10)  # default weight is 1
+    weights = torch.ones(8)  # default weight is 1
     
     # Very important classes (eyes, mouth, lips)
-    weights[4] = 3.0   # l_eye
-    weights[5] = 3.0   # r_eye
-    weights[7] = 3.0  # mouth
-    weights[8] = 3.0  # u_lip
-    weights[9] = 3.0  # l_lip
+    weights[3] = 3.0   # eyes
+    weights[5] = 3.0  # mouth
+    weights[6] = 3.0  # u_lip
+    weights[7] = 3.0  # l_lip
 
     # Still important
-    weights[2] = 2.0   # l_brow
-    weights[3] = 2.0   # r_brow
-    weights[6] = 2.0  # nose
+    weights[2] = 2.0   # brows
+    weights[4] = 2.0  # nose
     
     # Moderately important
     weights[1] = 1.0   # skin
@@ -107,9 +107,9 @@ def train():
 
     # dataset
 #    n_classes = 19
-    n_classes = 10
-    n_img_per_gpu = 64
-    n_workers = 10
+    n_classes = 8
+    n_img_per_gpu = 32
+    n_workers = 8
     cropsize = [448, 448]
     data_root = '/home/andrei/data/CelebAMask-HQ/'
 
