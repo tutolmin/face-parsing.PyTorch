@@ -16,62 +16,98 @@
 -- download [CelebAMask-HQ dataset](https://github.com/switchablenorms/CelebAMask-HQ)
 
 -- extract to ~/data
-    
+````Shell
+mkdir ~/data
+cd ~/data
+unzip -q ~/Downloads/CelebAMask-HQ.zip -d ~/data
+````
+
 -- make backups
 
 ```Shell
+cd CelebAMask-HQ
 cp -a CelebAMask-HQ-mask-anno{,_orig}
 cp -a CelebA-HQ-img{,_orig}
 ```
 
---  change file path in the `prepropess_data.py`, adjust classes and run
+--  change file path in the `prepropess_data.py`, adjust classes/masks and run:
 
 ```Shell
+mkdir ~/data/CelebAMask-HQ/CelebAMask-HQ-mask
 python prepropess_data.py
 ```
+it will generate masks in **CelebAMask-HQ-mask** folder
 
--- Remove images with eye glasses and combined masks
+-- Move images with eye glasses into separate folder
 ```Shell
+mkdir CelebA-HQ-img_eye_g
+
 find CelebAMask-HQ-mask-anno_orig/ -type f -name \*eye_g.png -exec basename -s _eye_g.png {} \; | awk '{print $1 + 0}' > /var/tmp/eye_g.txt
 
-for f in $(cat /var/tmp/eye_g.txt); do echo $f; rm CelebA-HQ-img/$f.jpg; done
-
-for f in $(cat /var/tmp/eye_g.txt); do echo $f; rm mask/$f.png; done
+for f in $(cat /var/tmp/eye_g.txt); do echo $f; mv CelebA-HQ-img/$f.jpg CelebA-HQ-img_eye_g; done
 ```
 
--- Remove mask items with eye glasses 
-```Shell
-find CelebAMask-HQ-mask-anno_orig/ -type f -name \*eye_g.png -exec basename -s _eye_g.png {} \; > /var/tmp/eye_g.txt
+--  change file path in the `prepropess_data_eye_g.py`, adjust classes/masks and run:
 
-for f in $(cat /var/tmp/eye_g.txt); do echo $f; find CelebAMask-HQ-mask-anno -type f -name $f\* -delete; done
+```Shell
+mkdir CelebAMask-HQ-mask_eye_g
+python prepropess_data_eye_g.py
+````
+
+-- Remove mask items with eye glasses (why do I need this?)
+```Shell
+#find CelebAMask-HQ-mask-anno_orig/ -type f -name \*eye_g.png -exec basename -s _eye_g.png {} \; > /var/tmp/eye_g.txt
+
+#for f in $(cat /var/tmp/eye_g.txt); do echo $f; find CelebAMask-HQ-mask-anno -type f -name $f\* -delete; done
 ```
 
 -- Evaluation dataset
 ```Shell
-andrei@fedor:~/data/CelebAMask-HQ$ find CelebA-HQ-img -type f -name \*64\*|wc -l
-853
-
-find CelebA-HQ-img -type f -name \*64\* -exec mv {} CelebA-HQ-eval-img/ \;
+mkdir CelebA-HQ-eval-img
+find CelebA-HQ-img -type f -name \*64\* -exec mv {} CelebA-HQ-eval-img \;
 ```
+
+-- Separate eye glasses dataset (train/eval)
+````Shell
+cp -a CelebA-HQ-img_eye_g{,_orig}
+mkdir CelebA-HQ-eval-img_eye_g
+find CelebA-HQ-img_eye_g -type f -name \*19\* -exec mv {} CelebA-HQ-eval-img_eye_g \;
+````
 
 -- Verify counters
 ```Shell
-andrei@fedor:~/data/CelebAMask-HQ$ wc -l /var/tmp/eye_g.txt ; ls CelebA-HQ-eval-img | wc -l; ls CelebA-HQ-img | wc -l; ls mask | wc -l
-1549 /var/tmp/eye_g.txt
-853
-27598
-28451
+find . -mindepth 1 -maxdepth 1 -type d | while read dir; do     echo "$dir: $(find "$dir" -maxdepth 1 -type f | wc -l)"; done|sort
+./CelebA-HQ-eval-img: 853
+./CelebA-HQ-eval-img_eye_g: 104
+./CelebA-HQ-img: 27598
+./CelebA-HQ-img_eye_g: 1445
+./CelebA-HQ-img_eye_g_orig: 1549
+./CelebA-HQ-img_orig: 30000
+./CelebAMask-HQ-mask: 30000
+./CelebAMask-HQ-mask-anno: 1
+./CelebAMask-HQ-mask-anno_orig: 1
+./CelebAMask-HQ-mask_eye_g: 1549
 ```
 
 2. Train the model using CelebAMask-HQ dataset:
 Just run the train script: 
 ```
     $ CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2 train.py
+CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch --use-env --nproc_per_node=1 train_amp.py
+
 ```
+
 
 If you do not wish to train the model, you can download [our pre-trained model](https://drive.google.com/open?id=154JgKpzCPW82qINcVieuPH3fZ2e0P812) and save it in `res/cp`.
 
 3. Validation
+
+````Shell
+for i in $(find res/cp_8_8/ -type f|sort -k3h -t \/); do python stat_threads.py $i; done | tee stats_4060_8_classes_8_bs.log
+
+grep Mean\ R stats_4060_8_classes_8_bs.log | awk '{print $3}'
+````
+
 Metrics for the original model:
 ````
 Loading model res/79999_iter_orig.pth
