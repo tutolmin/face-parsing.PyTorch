@@ -131,7 +131,7 @@ def train():
     net.train()
     net = nn.parallel.DistributedDataParallel(net,
             device_ids = [args.local_rank],
-            output_device = 0
+            output_device = args.local_rank
             )
     score_thres = 0.7
 
