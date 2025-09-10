@@ -93,7 +93,7 @@ def get_class_weights():
 
 def train():
     args = parse_args()
-    torch.cuda.set_device(0)
+    torch.cuda.set_device(args.local_rank)
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
     dist.init_process_group(
@@ -130,7 +130,7 @@ def train():
     net.cuda()
     net.train()
     net = nn.parallel.DistributedDataParallel(net,
-            device_ids = [0, ],
+            device_ids = [args.local_rank],
             output_device = 0
             )
     score_thres = 0.7
