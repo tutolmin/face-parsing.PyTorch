@@ -58,7 +58,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
     n_classes = 8
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
-    save_pth = osp.join('res/cp_8_8', cp)
+    save_pth = osp.join('res/cp', cp)
     net.load_state_dict(torch.load(save_pth))
     net.eval()
 
@@ -70,6 +70,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
         for image_path in os.listdir(dspth):
             img = Image.open(osp.join(dspth, image_path))
             image = img.resize((512, 512), Image.BILINEAR)
+#            image = img.resize((1024, 1024), Image.BILINEAR)
             img = to_tensor(image)
             img = torch.unsqueeze(img, 0)
             img = img.cuda()
@@ -88,6 +89,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
 
 if __name__ == "__main__":
 #    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='19999_iter.pth')
-    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='99999_iter.pth')
-
+#    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='99999_iter.pth')
+#    evaluate(dspth='/home/andrei/workspace/_Sources/test', cp='79999_iter_orig.pth')
+    evaluate(dspth='/home/andrei/workspace/_Sources/test')
 

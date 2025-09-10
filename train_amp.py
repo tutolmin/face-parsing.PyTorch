@@ -33,6 +33,7 @@ logger = logging.getLogger()
 
 def parse_args():
     parse = argparse.ArgumentParser()
+    parse.add_argument("--local-rank", "--local_rank", type=int, default = 0)
 #    parse.add_argument(
 #            '--local_rank',
 #            dest = 'local_rank',
@@ -100,8 +101,8 @@ def train():
                 init_method = 'tcp://127.0.0.1:29500',
 #                init_method = 'tcp://127.0.0.1:33241',
                 world_size = torch.cuda.device_count(),
-                rank=0
-#                rank=args.local_rank
+#                rank=0
+                rank=args.local_rank
                 )
     setup_logger(respth)
 
@@ -176,7 +177,8 @@ def train():
             power = power)
 
     ## train loop
-    scaler = GradScaler('cuda')
+#    scaler = GradScaler('cuda')
+    scaler = GradScaler()
     msg_iter = 50
     loss_avg = []
     st = glob_st = time.time()
@@ -185,8 +187,9 @@ def train():
     for it in range(max_iter):
         try:
             im, lb = next(diter)
-            if not im.size()[0] == n_img_per_gpu:
-                raise StopIteration
+# Redundant
+#            if not im.size()[0] == n_img_per_gpu:
+#                raise StopIteration
         except StopIteration:
             epoch += 1
             sampler.set_epoch(epoch)
