@@ -108,7 +108,7 @@ def train():
     # dataset
 #    n_classes = 19
     n_classes = 8
-    n_img_per_gpu = 32
+    n_img_per_gpu = 8
     n_workers = 8
     cropsize = [448, 448]
     data_root = '/home/andrei/data/CelebAMask-HQ/'
@@ -133,16 +133,26 @@ def train():
             output_device = 0
             )
     score_thres = 0.7
-    n_min = n_img_per_gpu * cropsize[0] * cropsize[1]//16
-#    LossP = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
-#    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
-#    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
 
-    # Modify the loss initialization
-    class_weight = get_class_weights()
-    LossP = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
-    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
-    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
+    # Предполагая, что out: /8, out16: /16, out32: /32
+    n_min_p = n_img_per_gpu * (cropsize[0]//8) * (cropsize[1]//8) // 16
+    n_min_2 = n_img_per_gpu * (cropsize[0]//16) * (cropsize[1]//16) // 16  
+    n_min_3 = n_img_per_gpu * (cropsize[0]//32) * (cropsize[1]//32) // 16
+
+    LossP = OhemCELoss(thresh=score_thres, n_min=n_min_p, ignore_lb=ignore_idx)
+    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min_2, ignore_lb=ignore_idx)
+    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min_3, ignore_lb=ignore_idx)
+
+#    n_min = n_img_per_gpu * cropsize[0] * cropsize[1]//16
+##    LossP = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
+##    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
+##    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
+#
+#    # Modify the loss initialization
+#    class_weight = get_class_weights()
+#    LossP = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
+#    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
+#    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx, weight=class_weight)
 
     ## optimizer
     momentum = 0.9
