@@ -109,11 +109,12 @@ def train():
     # dataset
 #    n_classes = 19
     n_classes = 8
-    n_img_per_gpu = 8 
+    n_img_per_gpu = 32
     n_workers = 8
 #    cropsize = [448, 448]
 #    cropsize = [512, 512]
-    cropsize = [768, 768]
+    cropsize = [704, 704]
+#    cropsize = [768, 768]
 #    cropsize = [1024, 1024]
     data_root = '/home/andrei/data/CelebAMask-HQ/'
 
