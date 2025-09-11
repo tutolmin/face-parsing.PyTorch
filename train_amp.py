@@ -109,9 +109,11 @@ def train():
     # dataset
 #    n_classes = 19
     n_classes = 8
-    n_img_per_gpu = 8
+    n_img_per_gpu = 8 
     n_workers = 8
-    cropsize = [448, 448]
+#    cropsize = [448, 448]
+    cropsize = [512, 512]
+#    cropsize = [1024, 1024]
     data_root = '/home/andrei/data/CelebAMask-HQ/'
 
     ds = FaceMask(data_root, cropsize=cropsize, mode='train')
@@ -207,11 +209,25 @@ def train():
 #        loss3 = Loss3(out32, lb)
 #        loss = lossp + loss2 + loss3
 #        loss.backward()
+
         with autocast(device_type='cuda', dtype=torch.float16):
             out, out16, out32 = net(im)
+
+            # Интерполировать до размера оригинальных меток
+            out = F.interpolate(out, size=(H, W), mode='bilinear', align_corners=False)
+            out16 = F.interpolate(out16, size=(H, W), mode='bilinear', align_corners=False)
+            out32 = F.interpolate(out32, size=(H, W), mode='bilinear', align_corners=False)
+
             lossp = LossP(out, lb)
             loss2 = Loss2(out16, lb)
             loss3 = Loss3(out32, lb)
+
+#        with autocast(device_type='cuda', dtype=torch.float16):
+#            out, out16, out32 = net(im)
+#            lossp = LossP(out, lb)
+#            loss2 = Loss2(out16, lb)
+#            loss3 = Loss3(out32, lb)
+
             loss = lossp + loss2 + loss3
         scaler.scale(loss).backward()
         scaler.step(optim)   # ← теперь не упадёт
@@ -247,8 +263,8 @@ def train():
         if dist.get_rank() == 0:
             if (it+1) % 5000 == 0:
                 state = net.module.state_dict() if hasattr(net, 'module') else net.state_dict()
-                if dist.get_rank() == 0:
-                    torch.save(state, './res/cp/{}_iter.pth'.format(it))
+#                if dist.get_rank() == 0:
+                torch.save(state, './res/cp/{}_iter.pth'.format(it))
                 evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='{}_iter.pth'.format(it))
 
     #  dump the final model
