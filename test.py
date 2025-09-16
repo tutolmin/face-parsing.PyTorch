@@ -72,7 +72,8 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
 #            image = img.resize((256, 256), Image.BILINEAR)
 #            image = img.resize((512, 512), Image.BILINEAR)
 #            image = img.resize((768, 768), Image.BILINEAR)
-            image = img.resize((1024, 1024), Image.BILINEAR)
+            image = img.resize((704, 704), Image.BILINEAR)
+#            image = img.resize((1024, 1024), Image.BILINEAR)
             img = to_tensor(image)
             img = torch.unsqueeze(img, 0)
             img = img.cuda()
@@ -90,7 +91,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
 
 
 if __name__ == "__main__":
-    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='99999_iter.pth')
+    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='4999_iter.pth')
 #    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='99999_iter.pth')
 #    evaluate(dspth='/home/andrei/workspace/_Sources/test', cp='79999_iter_orig.pth')
 #    evaluate(dspth='/home/andrei/workspace/_Sources/test')
