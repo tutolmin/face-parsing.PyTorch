@@ -107,7 +107,7 @@ def finetune():
 
     # === Изменения по сравнению с train() ===
     n_classes = 9  # Теперь 9 классов
-    ignore_idx = -100  # Уже используется
+    ignore_idx = 255  # Уже используется
     cp_path = './res/model_final_diss.pth'  # Путь к сохранённой модели
     # =======================================
 
@@ -246,7 +246,8 @@ def finetune():
             if (it+1) % 5000 == 0 or (it+1) == max_iter:
                 state = net.module.state_dict()
                 torch.save(state, f'./res/cp/ft_{it}_iter.pth')
-                evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp=f'ft_{it}_iter.pth')
+#                evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp=f'ft_{it}_iter.pth')
+                evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp=f'ft_{it}_iter.pth')
 
     # Сохранение финальной модели
     save_pth = osp.join(respth, 'model_final_finetuned.pth')
@@ -295,7 +296,7 @@ def train():
 
     # model
     ignore_idx = -100
-    ignore_idx = 255
+#    ignore_idx = 255
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
     net.train()
