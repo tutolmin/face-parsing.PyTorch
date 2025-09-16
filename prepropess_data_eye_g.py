@@ -23,7 +23,7 @@ for i in range(15):
         mask = np.zeros((512, 512))
         flag = False
 
-        for l, att in enumerate(atts, 9):
+        for l, att in enumerate(atts, 8):
             total += 1
             file_name = ''.join([str(j).rjust(5, '0'), '_', att, '.png'])
             path = osp.join(face_sep_mask, str(i), file_name)

@@ -58,7 +58,7 @@ def get_class_weights():
 #    merged_atts = ['skin', 'brows', 'eyes', 'nose', 'mouth', 'u_lip', 'l_lip']
 
     # Weight values (higher = more important)
-    weights = torch.ones(8)  # default weight is 1
+    weights = torch.ones(9)  # default weight is 1
     
     # Very important classes (eyes, mouth, lips)
     weights[3] = 3.0   # eyes
@@ -83,13 +83,178 @@ def get_class_weights():
 #    weights[14] = 0.0  # neck
 
     # Exclude
-#    weights[6] = 0.0   # eye_g (eyeglasses)
+    weights[8] = 2.0   # eye_g (eyeglasses)
 #    weights[9] = 0.0   # ear_r (earrings)
 #    weights[15] = 0.0  # neck_l (necklace)
 #    weights[16] = 0.0  # cloth
 #    weights[18] = 0.0  # hat
     
     return weights.cuda()
+
+
+def finetune():
+    args = parse_args()
+    torch.cuda.set_device(args.local_rank)
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    dist.init_process_group(
+        backend='nccl',
+        init_method='tcp://127.0.0.1:29500',
+        world_size=torch.cuda.device_count(),
+        rank=args.local_rank
+    )
+    setup_logger(respth)
+
+    # === Изменения по сравнению с train() ===
+    n_classes = 9  # Теперь 9 классов
+    ignore_idx = -100  # Уже используется
+    cp_path = './res/model_final_diss.pth'  # Путь к сохранённой модели
+    # =======================================
+
+    n_img_per_gpu = 32
+    n_workers = 8
+    cropsize = [448, 448]
+    data_root = '/home/andrei/data/CelebAMask-HQ/'  # Должен включать новые данные
+
+    ds = FaceMask(data_root, cropsize=cropsize, mode='finetune')  # или 'train', но с новыми данными
+    sampler = torch.utils.data.distributed.DistributedSampler(ds)
+    dl = DataLoader(ds,
+                    batch_size=n_img_per_gpu,
+                    shuffle=False,
+                    sampler=sampler,
+                    num_workers=n_workers,
+                    pin_memory=True,
+                    drop_last=True)
+
+    # model
+    net = BiSeNet(n_classes=n_classes)
+    net.cuda()
+
+    # Загружаем предобученные веса
+    state_dict = torch.load(cp_path, map_location=torch.device('cpu'))
+    # Совместимость: удалить префикс 'module.' если нужно
+    new_state_dict = {}
+    for k, v in state_dict.items():
+        nk = k[7:] if k.startswith('module.') else k
+        new_state_dict[nk] = v
+    net.load_state_dict(new_state_dict, strict=False)  # strict=False — т.к. добавился новый класс
+
+    net.train()
+    net = nn.parallel.DistributedDataParallel(net,
+            device_ids=[args.local_rank],
+            output_device=args.local_rank)
+
+    score_thres = 0.7
+    n_min_p = n_img_per_gpu * (cropsize[0]//8) * (cropsize[1]//8) // 16
+    n_min_2 = n_img_per_gpu * (cropsize[0]//16) * (cropsize[1]//16) // 16
+    n_min_3 = n_img_per_gpu * (cropsize[0]//32) * (cropsize[1]//32) // 16
+
+    # Веса классов с учётом нового класса
+    class_weight = get_class_weights()
+    LossP = OhemCELoss(thresh=score_thres, n_min=n_min_p, ignore_lb=ignore_idx, weight=class_weight)
+    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min_2, ignore_lb=ignore_idx, weight=class_weight)
+    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min_3, ignore_lb=ignore_idx, weight=class_weight)
+
+    # Оптимизатор — можно уменьшить lr для fine-tuning
+    momentum = 0.9
+    weight_decay = 5e-4
+    lr_start = 1e-4  # Меньше, чем при обучении с нуля
+    max_iter = 20000  # Меньше итераций
+    power = 0.9
+    warmup_steps = 200
+    warmup_start_lr = 1e-6
+
+    optim = Optimizer(
+        model=net.module,
+        lr0=lr_start,
+        momentum=momentum,
+        wd=weight_decay,
+        warmup_steps=warmup_steps,
+        warmup_start_lr=warmup_start_lr,
+        max_iter=max_iter,
+        power=power)
+
+    # === Обучение ===
+    scaler = GradScaler()
+    msg_iter = 50
+    loss_avg = []
+    st = glob_st = time.time()
+    diter = iter(dl)
+    epoch = 0
+
+    for it in range(max_iter):
+        try:
+            im, lb = next(diter)
+        except StopIteration:
+            epoch += 1
+            sampler.set_epoch(epoch)
+            diter = iter(dl)
+            im, lb = next(diter)
+        im = im.cuda()
+        lb = lb.cuda()
+        H, W = im.size()[2:]
+        lb = torch.squeeze(lb, 1)
+
+        optim.zero_grad()
+
+        with autocast(device_type='cuda', dtype=torch.float16):
+            out, out16, out32 = net(im)
+
+            out = F.interpolate(out, size=(H, W), mode='bilinear', align_corners=False)
+            out16 = F.interpolate(out16, size=(H, W), mode='bilinear', align_corners=False)
+            out32 = F.interpolate(out32, size=(H, W), mode='bilinear', align_corners=False)
+
+            lossp = LossP(out, lb)
+            loss2 = Loss2(out16, lb)
+            loss3 = Loss3(out32, lb)
+
+            loss = lossp + loss2 + loss3
+
+        scaler.scale(loss).backward()
+        scaler.step(optim)
+        scaler.update()
+
+        loss_avg.append(loss.item())
+
+        if (it+1) % msg_iter == 0:
+            loss_avg = sum(loss_avg) / len(loss_avg)
+            lr = optim.lr
+            ed = time.time()
+            t_intv, glob_t_intv = ed - st, ed - glob_st
+            eta = int((max_iter - it) * (glob_t_intv / (it + 1)))
+            eta = str(datetime.timedelta(seconds=eta))
+            msg = ', '.join([
+                'finetune',
+                'it: {it}/{max_it}',
+                'lr: {lr:.6f}',
+                'loss: {loss:.4f}',
+                'eta: {eta}',
+                'time: {time:.4f}',
+            ]).format(
+                it=it+1,
+                max_it=max_iter,
+                lr=lr,
+                loss=loss_avg,
+                time=t_intv,
+                eta=eta
+            )
+            logger.info(msg)
+            loss_avg = []
+            st = ed
+
+        if dist.get_rank() == 0:
+            if (it+1) % 5000 == 0 or (it+1) == max_iter:
+                state = net.module.state_dict()
+                torch.save(state, f'./res/cp/ft_{it}_iter.pth')
+                evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp=f'ft_{it}_iter.pth')
+
+    # Сохранение финальной модели
+    save_pth = osp.join(respth, 'model_final_finetuned.pth')
+    state = net.module.state_dict()
+    if dist.get_rank() == 0:
+        torch.save(state, save_pth)
+    logger.info(f'Fine-tuning done, model saved to: {save_pth}')
+
 
 def train():
     args = parse_args()
@@ -108,12 +273,12 @@ def train():
 
     # dataset
 #    n_classes = 19
-    n_classes = 8
+    n_classes = 9
     n_img_per_gpu = 32
     n_workers = 8
-#    cropsize = [448, 448]
+    cropsize = [448, 448]
 #    cropsize = [512, 512]
-    cropsize = [704, 704]
+#    cropsize = [704, 704]
 #    cropsize = [768, 768]
 #    cropsize = [1024, 1024]
     data_root = '/home/andrei/data/CelebAMask-HQ/'
@@ -130,6 +295,7 @@ def train():
 
     # model
     ignore_idx = -100
+    ignore_idx = 255
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
     net.train()
@@ -144,9 +310,15 @@ def train():
     n_min_2 = n_img_per_gpu * (cropsize[0]//16) * (cropsize[1]//16) // 16  
     n_min_3 = n_img_per_gpu * (cropsize[0]//32) * (cropsize[1]//32) // 16
 
-    LossP = OhemCELoss(thresh=score_thres, n_min=n_min_p, ignore_lb=ignore_idx)
-    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min_2, ignore_lb=ignore_idx)
-    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min_3, ignore_lb=ignore_idx)
+#    LossP = OhemCELoss(thresh=score_thres, n_min=n_min_p, ignore_lb=ignore_idx)
+#    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min_2, ignore_lb=ignore_idx)
+#    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min_3, ignore_lb=ignore_idx)
+
+    class_weight = get_class_weights()
+
+    LossP = OhemCELoss(thresh=score_thres, n_min=n_min_p, ignore_lb=ignore_idx, weight=class_weight)
+    Loss2 = OhemCELoss(thresh=score_thres, n_min=n_min_2, ignore_lb=ignore_idx, weight=class_weight)
+    Loss3 = OhemCELoss(thresh=score_thres, n_min=n_min_3, ignore_lb=ignore_idx, weight=class_weight)
 
 #    n_min = n_img_per_gpu * cropsize[0] * cropsize[1]//16
 ##    LossP = OhemCELoss(thresh=score_thres, n_min=n_min, ignore_lb=ignore_idx)
@@ -281,7 +453,8 @@ def train():
 if __name__ == "__main__":
 #    train()
     try:
-        train()
+#        train()
+        finetune()  # ← вместо train()
     finally:
         if dist.is_available() and dist.is_initialized():
             dist.destroy_process_group()
