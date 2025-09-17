@@ -40,7 +40,7 @@ class FaceMask(Dataset):
 
         self.imgs = os.listdir(os.path.join(self.rootpth, 'CelebA-HQ-img'))
         total_imgs = len(self.imgs)
-        self.partial_start_idx = total_imgs - 2000  # последние 2000 — только eye_g размечен
+        self.partial_start_idx = total_imgs - 1425  # последние 2000 — только eye_g размечен
 
         #  pre-processing
         self.to_tensor = transforms.Compose([

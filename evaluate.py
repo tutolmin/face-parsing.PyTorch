@@ -62,7 +62,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
         os.makedirs(respth)
 
 #    n_classes = 19
-    n_classes = 8
+    n_classes = 9
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
     save_pth = osp.join('res/cp', cp)
