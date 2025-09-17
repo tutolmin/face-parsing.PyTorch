@@ -49,9 +49,17 @@ class FaceMask(Dataset):
         img = Image.open(osp.join(self.rootpth, 'CelebA-HQ-img', impth))
         img = img.resize((512, 512), Image.BILINEAR)
 
-        is_partial = idx >= self.partial_start_idx
+        # === Извлекаем номер изображения из имени файла ===
+        # Пример: '12345.jpg' -> 12345
+        try:
+            img_id = int(osp.splitext(impth)[0])  # убираем расширение и конвертируем в int
+        except ValueError:
+            raise ValueError(f"Filename {impth} does not start with a number")
 
-        print( impth, " ", is_partial)
+        # Определяем, частично ли размечено
+        is_partial = img_id >= 30000  # или >= 30001, в зависимости от границы        
+
+#        print( idx, impth, " ", is_partial)
         if is_partial:
           label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask_eye_g', impth[:-3]+'png')).convert('P')
         else:
