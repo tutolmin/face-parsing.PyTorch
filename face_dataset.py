@@ -24,23 +24,9 @@ class FaceMask(Dataset):
         self.ignore_lb = -100
         self.rootpth = rootpth
 
-        # Список атрибутов и их объединённые ID
-        self.atts = ['skin', 'l_brow', 'r_brow', 'l_eye', 'r_eye', 'eye_g', 'l_ear', 'r_ear', 'ear_r',
-                     'nose', 'mouth', 'u_lip', 'l_lip', 'neck', 'neck_l', 'cloth', 'hair', 'hat']
-        self.merged_ids = {
-            'skin': 1,
-            'l_brow': 2, 'r_brow': 2,
-            'l_eye': 3, 'r_eye': 3,
-            'nose': 4,
-            'mouth': 5,
-            'u_lip': 6,
-            'l_lip': 7,
-            'eye_g': 8  # новый класс
-        }
-
         self.imgs = os.listdir(os.path.join(self.rootpth, 'CelebA-HQ-img'))
         total_imgs = len(self.imgs)
-        self.partial_start_idx = total_imgs - 1425  # последние 2000 — только eye_g размечен
+        self.partial_start_idx = total_imgs - 1425  # последние 1425 — только eye_g размечен
 
         #  pre-processing
         self.to_tensor = transforms.Compose([
@@ -59,39 +45,17 @@ class FaceMask(Dataset):
 
     def __getitem__(self, idx):
         impth = self.imgs[idx]
-        img = Image.open(osp.join(self.rootpth, 'CelebA-HQ-img', impth)).convert('RGB')
+#        img = Image.open(osp.join(self.rootpth, 'CelebA-HQ-img', impth)).convert('RGB')
+        img = Image.open(osp.join(self.rootpth, 'CelebA-HQ-img', impth))
         img = img.resize((512, 512), Image.BILINEAR)
-
-        # Инициализация маски как "игнорировать всё"
-        label = np.full((512, 512), self.ignore_lb, dtype=np.int64)
 
         is_partial = idx >= self.partial_start_idx
 
+        print( impth, " ", is_partial)
         if is_partial:
-            # Только eye_g размечен
-            path = osp.join(self.rootpth, 'CelebAMask-HQ-mask_eye_g', f"{idx}.png")
-            if osp.exists(path):
-                mask_eye_g = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-                label[mask_eye_g == 8] = 8  # только пиксели eye_g активны
+          label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask_eye_g', impth[:-3]+'png')).convert('P')
         else:
-            # Полная разметка: собираем все классы
-            for att in self.atts:
-                path = osp.join(self.rootpth, 'CelebAMask-HQ-mask-anno', str(idx // 2000),
-                                f"{str(idx).zfill(5)}_{att}.png")
-                if not osp.exists(path):
-                    continue
-                try:
-                    mask = np.array(Image.open(path).convert('P'))
-                    pixels = (mask == 225) | (mask == -100)
-                    if np.any(pixels):
-                        class_id = self.merged_ids.get(att)
-                        if class_id is not None:
-                            label[pixels] = class_id
-                except:
-                    pass
-
-        # Преобразуем в PIL для аугментаций
-        label = Image.fromarray(label.astype(np.uint8), mode='P')
+          label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask', impth[:-3]+'png')).convert('P')
 
         # Аугментации
         if self.mode == 'train':
