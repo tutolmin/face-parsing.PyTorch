@@ -107,12 +107,11 @@ def finetune():
 
     # === Изменения по сравнению с train() ===
     n_classes = 9  # Теперь 9 классов
-#    ignore_idx = -100  # Уже используется
     ignore_idx = 255  # Уже используется
     cp_path = './res/model_final_diss.pth'  # Путь к сохранённой модели
     # =======================================
 
-    n_img_per_gpu = 32
+    n_img_per_gpu = 8
     n_workers = 8
     cropsize = [448, 448]
     data_root = '/home/andrei/data/CelebAMask-HQ/'  # Должен включать новые данные
@@ -285,7 +284,7 @@ def train():
     # dataset
 #    n_classes = 19
     n_classes = 9
-    n_img_per_gpu = 32
+    n_img_per_gpu = 8
     n_workers = 8
     cropsize = [448, 448]
 #    cropsize = [512, 512]
@@ -305,7 +304,6 @@ def train():
                     drop_last = True)
 
     # model
-#    ignore_idx = 100
     ignore_idx = 255
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
