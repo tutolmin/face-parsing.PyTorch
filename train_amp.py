@@ -107,7 +107,7 @@ def finetune():
 
     # === Изменения по сравнению с train() ===
     n_classes = 9  # Теперь 9 классов
-    ignore_idx = 255  # Уже используется
+    ignore_idx = -100  # Уже используется
     cp_path = './res/model_final_diss.pth'  # Путь к сохранённой модели
     # =======================================
 
@@ -296,7 +296,6 @@ def train():
 
     # model
     ignore_idx = -100
-#    ignore_idx = 255
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
     net.train()

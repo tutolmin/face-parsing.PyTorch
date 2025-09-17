@@ -21,7 +21,7 @@ class FaceMask(Dataset):
         super(FaceMask, self).__init__(*args, **kwargs)
         assert mode in ('train', 'val', 'test')
         self.mode = mode
-        self.ignore_lb = 255
+        self.ignore_lb = -100
         self.rootpth = rootpth
 
         # Список атрибутов и их объединённые ID
@@ -82,7 +82,7 @@ class FaceMask(Dataset):
                     continue
                 try:
                     mask = np.array(Image.open(path).convert('P'))
-                    pixels = (mask == 225) | (mask == 255)
+                    pixels = (mask == 225) | (mask == -100)
                     if np.any(pixels):
                         class_id = self.merged_ids.get(att)
                         if class_id is not None:
@@ -137,17 +137,3 @@ if __name__ == "__main__":
             print(j)
 
     print(counter, total)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
