@@ -111,12 +111,12 @@ def finetune():
     cp_path = './res/model_final_diss.pth'  # Путь к сохранённой модели
     # =======================================
 
-    n_img_per_gpu = 32
+    n_img_per_gpu = 8
     n_workers = 8
     cropsize = [448, 448]
     data_root = '/home/andrei/data/CelebAMask-HQ/'  # Должен включать новые данные
 
-    ds = FaceMask(data_root, cropsize=cropsize, mode='finetune')  # или 'train', но с новыми данными
+    ds = FaceMask(data_root, cropsize=cropsize, mode='train')  # или 'train', но с новыми данными
     sampler = torch.utils.data.distributed.DistributedSampler(ds)
     dl = DataLoader(ds,
                     batch_size=n_img_per_gpu,
@@ -137,7 +137,17 @@ def finetune():
     for k, v in state_dict.items():
         nk = k[7:] if k.startswith('module.') else k
         new_state_dict[nk] = v
-    net.load_state_dict(new_state_dict, strict=False)  # strict=False — т.к. добавился новый класс
+#    net.load_state_dict(new_state_dict, strict=False)  # strict=False — т.к. добавился новый класс
+    # Исключаем только последние слои (conv_out, conv_out16, conv_out32)
+    state_keys_to_load = {}
+    for k in new_state_dict.keys():
+        if not k.startswith('conv_out.') and \
+           not k.startswith('conv_out16.') and \
+           not k.startswith('conv_out32.'):
+            state_keys_to_load[k] = new_state_dict[k]
+
+    # Загружаем только совместимые веса
+    net.load_state_dict(state_keys_to_load, strict=False)
 
     net.train()
     net = nn.parallel.DistributedDataParallel(net,
@@ -159,7 +169,7 @@ def finetune():
     momentum = 0.9
     weight_decay = 5e-4
     lr_start = 1e-4  # Меньше, чем при обучении с нуля
-    max_iter = 20000  # Меньше итераций
+    max_iter = 21000  # Меньше итераций
     power = 0.9
     warmup_steps = 200
     warmup_start_lr = 1e-6
@@ -243,10 +253,9 @@ def finetune():
             st = ed
 
         if dist.get_rank() == 0:
-            if (it+1) % 5000 == 0 or (it+1) == max_iter:
+            if (it+1) % 3000 == 0 or (it+1) == max_iter:
                 state = net.module.state_dict()
                 torch.save(state, f'./res/cp/ft_{it}_iter.pth')
-#                evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp=f'ft_{it}_iter.pth')
                 evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp=f'ft_{it}_iter.pth')
 
     # Сохранение финальной модели
@@ -275,7 +284,7 @@ def train():
     # dataset
 #    n_classes = 19
     n_classes = 9
-    n_img_per_gpu = 32
+    n_img_per_gpu = 8
     n_workers = 8
     cropsize = [448, 448]
 #    cropsize = [512, 512]
