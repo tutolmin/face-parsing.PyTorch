@@ -83,7 +83,7 @@ def get_class_weights():
 #    weights[14] = 0.0  # neck
 
     # Exclude
-    weights[8] = 2.0   # eye_g (eyeglasses)
+    weights[8] = 0.5   # eye_g (eyeglasses)
 #    weights[9] = 0.0   # ear_r (earrings)
 #    weights[15] = 0.0  # neck_l (necklace)
 #    weights[16] = 0.0  # cloth
