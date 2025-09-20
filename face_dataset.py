@@ -48,22 +48,29 @@ class FaceMask(Dataset):
 #        img = Image.open(osp.join(self.rootpth, 'CelebA-HQ-img', impth)).convert('RGB')
         img = Image.open(osp.join(self.rootpth, 'CelebA-HQ-img', impth))
         img = img.resize((512, 512), Image.BILINEAR)
+#        img = img.resize((704, 704), Image.BILINEAR)
 
         # === Извлекаем номер изображения из имени файла ===
         # Пример: '12345.jpg' -> 12345
-        try:
-            img_id = int(osp.splitext(impth)[0])  # убираем расширение и конвертируем в int
-        except ValueError:
-            raise ValueError(f"Filename {impth} does not start with a number")
+#        try:
+#            img_id = int(osp.splitext(impth)[0])  # убираем расширение и конвертируем в int
+#        except ValueError:
+#            raise ValueError(f"Filename {impth} does not start with a number")
 
         # Определяем, частично ли размечено
-        is_partial = img_id >= 30000  # или >= 30001, в зависимости от границы        
+#        is_partial = img_id >= 30000  # или >= 30001, в зависимости от границы        
 
-#        print( idx, impth, " ", is_partial)
-        if is_partial:
-          label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask_eye_g', impth[:-3]+'png')).convert('P')
-        else:
-          label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask', impth[:-3]+'png')).convert('P')
+        # Определяем, размечено 9 classes
+#        is_complete = img_id >= 31200  # или >= 30001, в зависимости от границы        
+
+        #print( idx, impth, " ", is_partial, " ", is_complete)
+        label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask_face', impth[:-3]+'png')).convert('P')
+#        if is_complete:
+#          label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask_eye_g_100_full', impth[:-3]+'png')).convert('P')
+#        elif is_partial:
+#          label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask_eye_g', impth[:-3]+'png')).convert('P')
+#        else:
+#          label = Image.open(osp.join(self.rootpth, 'CelebAMask-HQ-mask', impth[:-3]+'png')).convert('P')
 
         # Аугментации
         if self.mode == 'train':

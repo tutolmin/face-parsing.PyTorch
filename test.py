@@ -55,10 +55,10 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
     if not os.path.exists(respth):
         os.makedirs(respth)
 
-    n_classes = 9
+    n_classes = 8
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
-    save_pth = osp.join('res/cp', cp)
+    save_pth = osp.join('res/cp_512', cp)
     net.load_state_dict(torch.load(save_pth))
     net.eval()
 
@@ -92,7 +92,8 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
 
 if __name__ == "__main__":
 #    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='ft_8999_iter.pth')
-    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='model_final_finetuned.pth')
+#    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='4999_iter.pth')
+    evaluate(dspth='/home/andrei/data/job4/images/', cp='89999_iter.pth')
 #    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='model_final_diss_8_8.pth')
 #    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='99999_iter.pth')
 #    evaluate(dspth='/home/andrei/workspace/_Sources/test', cp='79999_iter_orig.pth')

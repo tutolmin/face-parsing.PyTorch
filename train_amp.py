@@ -58,20 +58,20 @@ def get_class_weights():
 #    merged_atts = ['skin', 'brows', 'eyes', 'nose', 'mouth', 'u_lip', 'l_lip']
 
     # Weight values (higher = more important)
-    weights = torch.ones(9)  # default weight is 1
+    weights = torch.ones(2)  # default weight is 1
     
     # Very important classes (eyes, mouth, lips)
-    weights[3] = 3.0   # eyes
-    weights[5] = 3.0  # mouth
-    weights[6] = 3.0  # u_lip
-    weights[7] = 3.0  # l_lip
+#    weights[3] = 2.0   # eyes
+#    weights[5] = 2.0  # mouth
+#    weights[6] = 2.0  # u_lip
+#    weights[7] = 2.0  # l_lip
 
     # Still important
-    weights[2] = 2.0   # brows
-    weights[4] = 2.0  # nose
+#    weights[2] = 2.0   # brows
+#    weights[4] = 1.0  # nose
     
     # Moderately important
-    weights[1] = 1.0   # skin
+    weights[1] = 1.0   # face
 
     # Default
 #    weights[17] = 1.0  # hair
@@ -83,7 +83,7 @@ def get_class_weights():
 #    weights[14] = 0.0  # neck
 
     # Exclude
-    weights[8] = 0.5   # eye_g (eyeglasses)
+#    weights[8] = 1.0   # eye_g (eyeglasses)
 #    weights[9] = 0.0   # ear_r (earrings)
 #    weights[15] = 0.0  # neck_l (necklace)
 #    weights[16] = 0.0  # cloth
@@ -283,8 +283,8 @@ def train():
 
     # dataset
 #    n_classes = 19
-    n_classes = 9
-    n_img_per_gpu = 32
+    n_classes = 2
+    n_img_per_gpu = 8
     n_workers = 8
     cropsize = [448, 448]
 #    cropsize = [512, 512]
@@ -462,8 +462,8 @@ def train():
 if __name__ == "__main__":
 #    train()
     try:
-#        train()
-        finetune()  # ← вместо train()
+        train()
+#        finetune()  # ← вместо train()
     finally:
         if dist.is_available() and dist.is_initialized():
             dist.destroy_process_group()

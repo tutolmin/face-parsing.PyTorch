@@ -23,7 +23,7 @@ VAL_MASKS_DIR = "/home/andrei/data/CelebAMask-HQ/CelebAMask-HQ-mask"
 #MODEL_PATH = "res/cp_16/79999_iter_orig.pth"
 #MODEL_PATH = "res/cp/4999_iter.pth"
 MODEL_PATH = sys.argv[1]  # Первый аргумент командной строки
-NUM_CLASSES = 8
+NUM_CLASSES = 2
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Class definitions
@@ -32,7 +32,8 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 #    6: 'nose', 7: 'mouth', 8: 'u_lip', 9: 'l_lip',
 #}
 CLASS_NAMES = {
-        0: 'background', 1: 'skin', 2: 'brows', 3: 'eyes', 4: 'nose', 5: 'mouth', 6: 'u_lip', 7: 'l_lip',
+#        0: 'background', 1: 'skin', 2: 'brows', 3: 'eyes', 4: 'nose', 5: 'mouth', 6: 'u_lip', 7: 'l_lip',
+        0: 'background', 1: 'face',
 }
 #ignore_classes = [6, 9, 15, 16, 18]
 ignore_classes = []
