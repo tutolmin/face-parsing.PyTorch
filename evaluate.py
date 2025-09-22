@@ -62,7 +62,7 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
         os.makedirs(respth)
 
 #    n_classes = 19
-    n_classes = 8
+    n_classes = 9
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
     save_pth = osp.join('res/cp', cp)
@@ -77,7 +77,8 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
     with torch.no_grad():
         for image_path in os.listdir(dspth):
             img = Image.open(osp.join(dspth, image_path))
-            image = img.resize((512, 512), Image.BILINEAR)
+#            image = img.resize((512, 512), Image.BILINEAR)
+            image = img.resize((1024, 1024), Image.BILINEAR)
             img = to_tensor(image)
             img = torch.unsqueeze(img, 0)
             img = img.cuda()

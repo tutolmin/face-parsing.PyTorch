@@ -107,10 +107,11 @@ def train():
 
     # dataset
 #    n_classes = 19
-    n_classes = 8
-    n_img_per_gpu = 8
+    n_classes = 9
+    n_img_per_gpu = 16
     n_workers = 8
-    cropsize = [448, 448]
+#    cropsize = [448, 448]
+    cropsize = [1024, 1024]
     data_root = '/home/andrei/data/CelebAMask-HQ/'
 
     ds = FaceMask(data_root, cropsize=cropsize, mode='train')
@@ -159,7 +160,7 @@ def train():
     weight_decay = 5e-4
 #    lr_start = 1e-2
     lr_start = 5e-3
-    max_iter = 100000
+    max_iter = 50000
     power = 0.9
 #    power = 0.6
     warmup_steps = 1000

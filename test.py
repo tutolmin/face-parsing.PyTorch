@@ -20,11 +20,12 @@ def vis_parsing_maps(im, parsing_anno, stride, save_im=False, save_path='vis_res
                    [255, 0, 85],
                    [0, 255, 0], 
                    [0, 255, 170],
+                   [255, 0, 85], 
                    [0, 0, 255], [85, 0, 255],
                    [0, 85, 255], [0, 170, 255],
                    [255, 255, 0], [255, 255, 85], [255, 255, 170],
                    [255, 0, 255], [255, 85, 255], [255, 170, 255],
-                   [255, 0, 85], [255, 0, 170],
+                   [255, 0, 170],
                    [0, 255, 255], [85, 255, 255], [170, 255, 255]]
 
     im = np.array(im)
@@ -50,15 +51,64 @@ def vis_parsing_maps(im, parsing_anno, stride, save_im=False, save_path='vis_res
 
     # return vis_im
 
+def save_individual_masks(parsing_anno, image_path, base_filename):
+    """
+    Сохраняет индивидуальные маски для каждого класса в формате CelebAMask-HQ
+    
+    Args:
+        parsing_anno: маска с семантической сегментацией (numpy array)
+        image_path: полный путь к исходному изображению
+        base_filename: базовое имя файла без расширения
+    """
+    # Соответствие индексов классов и их имен
+    class_mapping = {
+        0: 'background',
+        1: 'skin', 
+        2: 'brows',
+        3: 'eyes',
+        4: 'eye_g',  # очки
+        5: 'nose',
+        6: 'mouth', 
+        7: 'u_lip',
+        8: 'l_lip',
+        9: 'tongue',
+    }
+    
+    # Создаем папку для масок, если она не существует
+    mask_dir = '/home/andrei/data/CelebAMask-HQ/CelebAMask-HQ-mask-anno-tongue'
+    if not os.path.exists(mask_dir):
+        os.makedirs(mask_dir)
+    
+    # Сохраняем маски для каждого класса
+    for class_idx, class_name in class_mapping.items():
+        if class_name == 'background':  # пропускаем фон
+            continue
+            
+        # Проверяем, есть ли пиксели данного класса в маске
+        class_pixels = np.sum(parsing_anno == class_idx)
+        if class_pixels == 0:  # если класс не содержит пикселей, пропускаем
+            continue        
+            
+        # Создаем бинарную маску для текущего класса
+        binary_mask = (parsing_anno == class_idx).astype(np.uint8) * 255
+        
+        # Создаем имя файла в формате: filename_mask.png
+        mask_filename = f"{base_filename}___{class_name}.png"
+        mask_path = osp.join(mask_dir, mask_filename)
+        
+        # Сохраняем маску как PNG
+        mask_img = Image.fromarray(binary_mask)
+        mask_img.save(mask_path)
+
 def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth'):
 
     if not os.path.exists(respth):
         os.makedirs(respth)
 
-    n_classes = 8
+    n_classes = 9
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
-    save_pth = osp.join('res/cp_8_8', cp)
+    save_pth = osp.join('res/cp', cp)
     net.load_state_dict(torch.load(save_pth))
     net.eval()
 
@@ -69,7 +119,8 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
     with torch.no_grad():
         for image_path in os.listdir(dspth):
             img = Image.open(osp.join(dspth, image_path))
-            image = img.resize((512, 512), Image.BILINEAR)
+#            image = img.resize((512, 512), Image.BILINEAR)
+            image = img.resize((1024, 1024), Image.BILINEAR)
             img = to_tensor(image)
             img = torch.unsqueeze(img, 0)
             img = img.cuda()
@@ -81,13 +132,14 @@ def evaluate(respth='./res/test_res', dspth='./data', cp='model_final_diss.pth')
             vis_parsing_maps(image, parsing, stride=1, save_im=True, save_path=osp.join(respth, image_path))
 
 
-
-
-
+            # Добавляем вызов функции для сохранения индивидуальных масок
+            base_filename = osp.splitext(image_path)[0]  # получаем имя файла без расширения
+            save_individual_masks(parsing, image_path, base_filename)
 
 
 if __name__ == "__main__":
-#    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='19999_iter.pth')
-    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img_eye_g', cp='99999_iter.pth')
+#    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='29999_iter.pth')
+#    evaluate(dspth='/home/andrei/data/CelebAMask-HQ/CelebA-HQ-eval-img', cp='4999_iter.pth')
+    evaluate(dspth='/home/andrei/data/job4/images', cp='49999_iter.pth')
 
 
