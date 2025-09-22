@@ -133,11 +133,12 @@ def main():
         for class_name, mask in masks.items():
             if np.any(mask > 0):  # Only save masks that have annotations
                 # Resize mask to 512x512 using nearest neighbor interpolation
-                resized_mask = cv2.resize(mask, (512, 512), interpolation=cv2.INTER_NEAREST)
+#                resized_mask = cv2.resize(mask, (512, 512), interpolation=cv2.INTER_NEAREST)
 
                 # Convert to 24-bit RGB format
                 # Create a 3-channel image where all channels have the same values
-                mask_rgb = cv2.merge([resized_mask, resized_mask, resized_mask])
+#                mask_rgb = cv2.merge([resized_mask, resized_mask, resized_mask])
+                mask_rgb = cv2.merge([mask, mask, mask])
 
 #                mask_filename = f"{image_id}_{class_name}.png"
                 mask_filename = f"{image_name_without_ext}___{class_name}.png"
