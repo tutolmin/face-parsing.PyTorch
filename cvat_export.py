@@ -23,11 +23,11 @@ def main():
 
     # Define ONLY the classes that are present in the export
     class_mapping = {
-        'mouth': 'mouth',
-        'u_lip': 'u_lip',
-        'l_lip': 'l_lip',
+#        'mouth': 'mouth',
+#        'u_lip': 'u_lip',
+#        'l_lip': 'l_lip',
         'tongue': 'tongue',
-        'occlusion': 'occlusion'
+#        'occlusion': 'occlusion'
     }
 
     # Parse XML file
@@ -46,6 +46,7 @@ def main():
 
     for img_element in image_elements:
         image_name = img_element.get('name')
+        image_name_without_ext = os.path.splitext(image_name)[0]
         image_width = int(img_element.get('width'))
         image_height = int(img_element.get('height'))
 
@@ -138,7 +139,8 @@ def main():
                 # Create a 3-channel image where all channels have the same values
                 mask_rgb = cv2.merge([resized_mask, resized_mask, resized_mask])
 
-                mask_filename = f"{image_id}_{class_name}.png"
+#                mask_filename = f"{image_id}_{class_name}.png"
+                mask_filename = f"{image_name_without_ext}___{class_name}.png"
                 mask_path = os.path.join(args.output_dir, 'mask', mask_filename)
 
                 # Save as 24-bit PNG
